@@ -1,9 +1,11 @@
 import os
 from typing import Optional
 
-from app.models import ProcurementRequest
+from langchain.chains import create_tagging_chain
 from langchain_core.prompts import ChatPromptTemplate
 from langchain_openai import ChatOpenAI
+
+from app.models import ProcurementRequest
 
 
 class ProcurementRequestExractor:
@@ -12,7 +14,7 @@ class ProcurementRequestExractor:
         # 1) You can add examples into the prompt template to improve extraction quality
         # 2) Introduce additional parameters to take context into account (e.g., include metadata
         #    about the document from which the text was extracted.)
-        self.prompt = ChatPromptTemplate.from_messages(
+        prompt = ChatPromptTemplate.from_messages(
             [
                 (
                     "system",
@@ -29,15 +31,34 @@ class ProcurementRequestExractor:
             ]
         )
 
-        self.llm = ChatOpenAI(
+        llm = ChatOpenAI(
             # TODO: is there a better way to do this?
             openai_api_key=os.environ["OPENAI_API_KEY"],
             temperature=0,
         )
 
-        self.runnable = self.prompt | self.llm.with_structured_output(
-            schema=ProcurementRequest
-        )
+        self.runnable = prompt | llm.with_structured_output(schema=ProcurementRequest)
+        schema = {
+            "properties": {
+                "commodity_group": {
+                    "type": "string",
+                    "enum": [
+                        "General Services",
+                        "Facility Management",
+                        "Publishing Production",
+                        "Information Technology",
+                        "Logistics",
+                        "Marketing & Advertising",
+                        "Production",
+                    ],
+                    "description": "The category or group the requested items/services belong to.",
+                },
+            },
+            "required": ["commodity_group"],
+        }
+        self.chain = create_tagging_chain(schema, llm)
 
     def __call__(self, text: str) -> Optional[ProcurementRequest]:
-        return self.runnable.invoke({"text": text})
+        req = self.runnable.invoke({"text": text})
+        req.commodity_group = self.chain.run(text)["commodity_group"]
+        return req
