@@ -48,3 +48,7 @@ class ProcurementRequest(BaseModel):
         ...,
         description="Estimated total cost of the request. If the total cost is not stated, this field should be left empty.",
     )
+    vatin: Optional[str] = Field(
+        ...,
+        description="The VAT identification number. In German, this is called Umsatzsteuer-Identifikationsnummer and often abbrevieted as USt-IdNr or UID. If the total price is not stated, this field should be left empty.",
+    )

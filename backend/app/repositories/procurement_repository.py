@@ -18,6 +18,7 @@ class ProcurementRepository:
                 )
             ],
             total_cost=3000.0,
+            vatin="DE123456789",
         )
         print(request)
         self.requests = {"ca263d62-2aab-4350-9656-0e6ac1ea3e21": request}
