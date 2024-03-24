@@ -1,0 +1,10 @@
+**/*.pdf
+**/.mypy_cache/
+**/.pytest_cache/
+**/.ropeproject/
+**/.venv/
+**/__pycache__/
+**/build/
+**/dist/
+**/node_modules/
+materials/
