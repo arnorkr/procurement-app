@@ -1,4 +1,4 @@
 export type ProcurementRequest = {
-  uuid: string;
-  msg: body;
+    uuid: string;
+    body: string;
 };
