@@ -1,6 +1,7 @@
 import uvicorn
 from fastapi import Depends, FastAPI, HTTPException
 from fastapi.responses import JSONResponse
+from langchain_community.document_loaders import PyPDFLoader
 from pydantic import BaseModel
 
 from app.extraction import ProcurementRequestExractor
@@ -11,10 +12,17 @@ class TextRequest(BaseModel):
     body: str
 
 
+class PdfRequest(BaseModel):
+    # TODO:
+    body: str
+
+
 app = FastAPI()
 
 procurement_repository = ProcurementRepository()
+# TODO: rename to extract_text
 extract = ProcurementRequestExractor()
+extract_pdf = ProcurementRequestExractor()
 
 
 @app.get("/healthz")
@@ -61,6 +69,34 @@ async def post_request(
     # TODO: error response if uuid is already stored
     body = request.body
     procurement_request = extract(body)
+    if procurement_request is None:
+        raise HTTPException(status_code=400, detail="Bad Request")
+    return JSONResponse(
+        procurement_repository.add_request(uuid, procurement_request),
+        status_code=200,
+    )
+
+
+def pdf2txt(path: str) -> str:
+    loader = PyPDFLoader("file1.pdf")
+    pages = loader.load_and_split()
+    return pages[0].page_content
+
+
+@app.post("/procurement-documents/{uuid}")
+async def post_document(
+    uuid: str,
+    request: PdfRequest,
+    procurement_repository: ProcurementRepository = Depends(
+        lambda: procurement_repository
+    ),
+):
+    # TODO: error response if uuid is already stored
+    body = request.body
+    # TODO: save the PDF
+    pdf_path = "./documents/AN-4120-Kdnr-14918.pdf"
+    text_body = pdf2txt(pdf_path)
+    procurement_request = extract(text_body)
     if procurement_request is None:
         raise HTTPException(status_code=400, detail="Bad Request")
     return JSONResponse(
