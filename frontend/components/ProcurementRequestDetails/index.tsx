@@ -1,6 +1,6 @@
-// components/ProcurementRequestDetails/index.tsx
 import * as React from "react";
-import { Box, Typography, List, ListItem, ListItemText } from "@mui/material";
+import { useState } from "react";
+import { Box, Typography, List, ListItem, ListItemText, TextField, Button } from "@mui/material";
 import { FormattedProcurementRequest } from "../../types/FormattedProcurementRequest";
 
 type ProcurementRequestDetailsProps = {
@@ -8,6 +8,33 @@ type ProcurementRequestDetailsProps = {
 };
 
 const ProcurementRequestDetails: React.FC<ProcurementRequestDetailsProps> = ({ procurementRequest }) => {
+    const [editedRequest, setEditedRequest] = useState(procurementRequest);
+
+    const handleInputChange = (fieldName: string, value: string) => {
+        setEditedRequest((prevRequest) => ({
+            ...prevRequest,
+            [fieldName]: value,
+        }));
+    };
+
+    const handleSubmit = async () => {
+        try {
+            const data = JSON.stringify(editedRequest)
+            const uuid = editedRequest.uuid
+            const res = await fetch(`http://localhost:5001/procurement-requests/${uuid}`, {
+                method: 'PUT',
+                headers: { "Content-Type": "application/json" },
+                body: data
+            })
+            // handle the error
+            if (!res.ok) throw new Error(await res.text())
+        } catch (e: any) {
+            // Handle errors here
+            console.error(e)
+        }
+
+    };
+
     return (
         <Box sx={{ p: 3 }}>
             <Typography variant="h5" gutterBottom>
@@ -15,33 +42,66 @@ const ProcurementRequestDetails: React.FC<ProcurementRequestDetailsProps> = ({ p
             </Typography>
             <List>
                 <ListItem>
-                    <ListItemText primary={`Requestor Name: ${procurementRequest.requestor_name}`} />
+                    <TextField
+                        label="Requestor Name"
+                        value={editedRequest.requestor_name || ""}
+                        onChange={(e) => handleInputChange("requestor_name", e.target.value)}
+                    />
                 </ListItem>
                 <ListItem>
-                    <ListItemText primary={`Description: ${procurementRequest.description}`} />
+                    <TextField
+                        label="Description"
+                        value={editedRequest.description || ""}
+                        onChange={(e) => handleInputChange("description", e.target.value)}
+                    />
                 </ListItem>
                 <ListItem>
-                    <ListItemText primary={`Vendor Name: ${procurementRequest.vendor_name}`} />
+                    <TextField
+                        label="Vendor Name"
+                        value={editedRequest.vendor_name || ""}
+                        onChange={(e) => handleInputChange("vendor_name", e.target.value)}
+                    />
                 </ListItem>
                 <ListItem>
-                    <ListItemText primary={`Department: ${procurementRequest.department}`} />
+                    <TextField
+                        label="Department"
+                        value={editedRequest.department || ""}
+                        onChange={(e) => handleInputChange("department", e.target.value)}
+                    />
                 </ListItem>
                 <ListItem>
-                    <ListItemText primary={`Total Cost: ${procurementRequest.total_cost}`} />
+                    <TextField
+                        label="Total Cost"
+                        value={editedRequest.total_cost ? editedRequest.total_cost.toString() : ""}
+                        type="number"
+                        onChange={(e) => handleInputChange("total_cost", e.target.value)}
+                    />
                 </ListItem>
                 <ListItem>
-                    <ListItemText primary={`VATIN: ${procurementRequest.vatin}`} />
+                    <TextField
+                        label="VATIN"
+                        value={editedRequest.vatin || ""}
+                        onChange={(e) => handleInputChange("vatin", e.target.value)}
+                    />
                 </ListItem>
                 <ListItem>
-                    <ListItemText primary={`Commodity Group: ${procurementRequest.commodity_group}`} />
+                    <TextField
+                        label="Commodity Group"
+                        value={editedRequest.commodity_group || ""}
+                        onChange={(e) => handleInputChange("commodity_group", e.target.value)}
+                    />
                 </ListItem>
                 <ListItem>
-                    <ListItemText primary={`Status: ${procurementRequest.status}`} />
+                    <TextField
+                        label="Status"
+                        value={editedRequest.status || ""}
+                        onChange={(e) => handleInputChange("status", e.target.value)}
+                    />
                 </ListItem>
                 <ListItem>
                     <ListItemText primary="Positions:" />
                     <List>
-                        {procurementRequest.positions.map((position, index) => (
+                        {editedRequest.positions.map((position, index) => (
                             <ListItem key={index}>
                                 <ListItemText
                                     primary={`Description: ${position.description}, Unit Price: ${position.unit_price}, Amount: ${position.amount}, Unit: ${position.unit}, Total Price: ${position.total_price}`}
@@ -51,6 +111,9 @@ const ProcurementRequestDetails: React.FC<ProcurementRequestDetailsProps> = ({ p
                     </List>
                 </ListItem>
             </List>
+            <Button variant="contained" color="primary" onClick={handleSubmit}>
+                Submit
+            </Button>
         </Box>
     );
 };

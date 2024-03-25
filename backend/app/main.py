@@ -3,6 +3,7 @@ from typing import Annotated
 
 import uvicorn
 from fastapi import Depends, FastAPI, File, HTTPException, UploadFile
+from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
 from langchain_community.document_loaders import PyPDFLoader
 from pydantic import BaseModel
@@ -21,6 +22,15 @@ class PdfRequest(BaseModel):
 
 
 app = FastAPI()
+
+# FIXME: this is unsafe
+# Allow all origins, methods, and headers for simplicity
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["*"],
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
 
 procurement_repository = ProcurementRepository()
 # TODO: rename to extract_text
