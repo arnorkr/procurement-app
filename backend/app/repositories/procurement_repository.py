@@ -43,3 +43,11 @@ class ProcurementRepository:
         request.uuid = uuid
         self.requests[uuid] = request
         return request.dict()
+
+    def update_request(self, uuid: str, in_request: dict) -> dict:
+        request = self.requests[uuid]
+        for k, v in in_request.items():
+            # TODO: verify attributes
+            setattr(request, k, v)
+        self.requests[uuid] = request
+        return request.dict()

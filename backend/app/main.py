@@ -1,5 +1,5 @@
 from pathlib import Path
-from typing import Annotated, BinaryIO
+from typing import Annotated
 
 import uvicorn
 from fastapi import Depends, FastAPI, File, HTTPException, UploadFile
@@ -57,6 +57,23 @@ async def get_procurement_request(
     try:
         request = procurement_repository.get_request(uuid)
         return JSONResponse(request, status_code=200)
+    except KeyError:
+        raise HTTPException(status_code=404, detail="Procurement request not found")
+
+
+@app.put("/procurement-requests/{uuid}")
+async def update_procurement_request(
+    uuid: str,
+    procurement_request: dict,
+    procurement_repository: ProcurementRepository = Depends(
+        lambda: procurement_repository
+    ),
+):
+    try:
+        updated_request = procurement_repository.update_request(
+            uuid, procurement_request
+        )
+        return JSONResponse(updated_request, status_code=200)
     except KeyError:
         raise HTTPException(status_code=404, detail="Procurement request not found")
 
