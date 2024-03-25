@@ -25,13 +25,10 @@ class Position(BaseModel):
 class ProcurementRequest(BaseModel):
     """If users want to buy a product or service they need to create a formal request to the procurement department, which will afterwards process this request."""
 
-    # TODO: VAT ID
-    # TODO: Commodity group
-    # TODO: make requestor name be an input field in the GUI
-    # requestor_name: Optional[str] = Field(
-    #     ...,
-    #     description="Full name of the person submitting the request. If the name of the person is unknown, the name should be left empty.",
-    # )
+    requestor_name: Optional[str] = Field(
+        ...,
+        description="Full name of the person submitting the request. If the name of the person is unknown, the name should be left empty.",
+    )
     description: Optional[str] = Field(
         ..., description="Brief description of the product/service requested."
     )
@@ -48,10 +45,11 @@ class ProcurementRequest(BaseModel):
         ...,
         description="Estimated total cost of the request. If the total cost is not stated, this field should be left empty.",
     )
-    # TODO: verify with a regex
     vatin: Optional[str] = Field(
         ...,
         description="The VAT identification number. In German, this is called Umsatzsteuer-Identifikationsnummer and often abbrevieted as USt-IdNr or UID. If the total price is not stated, this field should be left empty.",
     )
-    commodity_group: str = ""
+    commodity_group: Optional[str] = None
+    # TODO: make enum
     status: str = "open"
+    uuid: Optional[str] = None

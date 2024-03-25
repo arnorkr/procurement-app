@@ -5,6 +5,7 @@ from app.models import Position, ProcurementRequest
 class ProcurementRepository:
     def __init__(self):
         request = ProcurementRequest(
+            requestor_name="Adobe Systems",
             description="Adobe Creative Cloud Subscription",
             vendor_name="Adobe Systems",
             department="HR",
@@ -21,6 +22,7 @@ class ProcurementRepository:
             vatin="DE123456789",
             commodity_group="Software Licences",
             status="open",
+            uuid="ca263d62-2aab-4350-9656-0e6ac1ea3e21",
         )
         print(request)
         self.requests = {"ca263d62-2aab-4350-9656-0e6ac1ea3e21": request}
@@ -38,5 +40,6 @@ class ProcurementRepository:
         return request.dict()
 
     def add_request(self, uuid: str, request: ProcurementRequest) -> dict:
+        request.uuid = uuid
         self.requests[uuid] = request
         return request.dict()
