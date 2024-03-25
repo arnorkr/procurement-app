@@ -2,14 +2,20 @@ import { NextApiRequest, NextApiResponse } from "next";
 import axios from "axios";
 import { ErrorResponse } from "../../../types/ErrorResponse";
 import { ProcurementRequest } from "../../../types/ProcurementRequest";
+import { FormattedProcurementRequest } from "../../../types/FormattedProcurementRequest";
 
 async function handlerHelper(
     req: NextApiRequest,
-): Promise<[number, ErrorResponse | ProcurementRequest]> {
+): Promise<[number, ErrorResponse | ProcurementRequest | FormattedProcurementRequest]> {
     try {
         const { slug } = req.query;
         const uuid = slug[0];
         switch (req.method) {
+            case "GET": {
+                // TODO: return 404 if not found
+                const response = await axios.get<FormattedProcurementRequest>(`http://localhost:5001/procurement-requests/${uuid}`);
+                return [200, response.data];
+            }
             case "POST": {
                 const procurementRequestData: ProcurementRequest = req.body;
                 console.log(procurementRequestData)
@@ -17,7 +23,7 @@ async function handlerHelper(
                     `http://localhost:5001/procurement-requests/${uuid}`,
                     procurementRequestData, // Send procurement request data in the request body
                 );
-                return [201, response.data]; // Return response data instead of full response
+                return [200, response.data]; // Return response data instead of full response
             }
             default:
                 return [405, { error: "Method Not Allowed" }];
