@@ -2,6 +2,26 @@
 
 Please organize, design, test, and deploy your code (locally on your machine is fine) as if it were going into production. Then send us a link to the hosted repository (e.g. GitHub, Bitbucket...).
 
+## Installation instructions:
+Export your OpenAI API key:
+```
+export OPENAI_API_KEY=yourkey
+```
+To run the backend do:
+```
+cd backend/
+make setup
+make run
+```
+To run the frontend do:
+```
+cd frontend/
+make setup
+make run
+```
+
+The backend is running on http://localhost:5001 and the frontend on http://localhost:3000.
+
 ## Challenge Description
 
 _The askLio Team has identified the need to create and organize new requests for procurement. If users want to buy a product or service they need to create a formal request to the procurement department. That will afterwards process this request_
