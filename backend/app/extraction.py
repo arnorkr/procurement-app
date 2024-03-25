@@ -1,4 +1,5 @@
 import os
+import re
 from typing import Optional
 
 from langchain.chains import create_tagging_chain
@@ -6,6 +7,11 @@ from langchain_core.prompts import ChatPromptTemplate
 from langchain_openai import ChatOpenAI
 
 from app.models import ProcurementRequest
+
+
+def valid_vat(text):
+    regex_pattern = r"^[A-Za-z]{2,4}(?=.{2,12}$)[-_\s0-9]*(?:[a-zA-Z][-_\s0-9]*){0,2}$"
+    return bool(re.match(regex_pattern, text))
 
 
 class ProcurementRequestExractor:
@@ -61,4 +67,6 @@ class ProcurementRequestExractor:
     def __call__(self, text: str) -> Optional[ProcurementRequest]:
         req = self.runnable.invoke({"text": text})
         req.commodity_group = self.chain.run(text)["commodity_group"]
+        if not valid_vat(req.vatin):
+            req.vatin = None
         return req
