@@ -1,5 +1,8 @@
+from pathlib import Path
+from typing import Annotated, BinaryIO
+
 import uvicorn
-from fastapi import Depends, FastAPI, HTTPException
+from fastapi import Depends, FastAPI, File, HTTPException, UploadFile
 from fastapi.responses import JSONResponse
 from langchain_community.document_loaders import PyPDFLoader
 from pydantic import BaseModel
@@ -78,31 +81,38 @@ async def post_request(
 
 
 def pdf2txt(path: str) -> str:
-    loader = PyPDFLoader("file1.pdf")
+    loader = PyPDFLoader(path)
     pages = loader.load_and_split()
     return pages[0].page_content
 
 
-@app.post("/procurement-documents/{uuid}")
-async def post_document(
-    uuid: str,
-    request: PdfRequest,
-    procurement_repository: ProcurementRepository = Depends(
-        lambda: procurement_repository
-    ),
-):
-    # TODO: error response if uuid is already stored
-    body = request.body
-    # TODO: save the PDF
-    pdf_path = "./documents/AN-4120-Kdnr-14918.pdf"
-    text_body = pdf2txt(pdf_path)
-    procurement_request = extract(text_body)
-    if procurement_request is None:
-        raise HTTPException(status_code=400, detail="Bad Request")
-    return JSONResponse(
-        procurement_repository.add_request(uuid, procurement_request),
-        status_code=200,
-    )
+class PDFUpload(BaseModel):
+    pdf_content: bytes
+
+
+@app.post("/documents/{uuid}")
+async def upload_document(uuid: str, upload_file: UploadFile = File(...)):
+    try:
+        pdf_data = upload_file.file.read()
+        # Create a directory if it doesn't exist
+        documents_dir = Path("./documents")
+        documents_dir.mkdir(parents=True, exist_ok=True)
+
+        # Save the uploaded file
+        file_path = f"{documents_dir}/{uuid}.pdf"
+        with open(file_path, "wb") as f:
+            f.write(pdf_data)
+        body = pdf2txt(file_path)
+        procurement_request = extract(body)
+        if procurement_request is None:
+            raise HTTPException(status_code=400, detail="Bad Request")
+        return JSONResponse(
+            procurement_repository.add_request(uuid, procurement_request),
+            status_code=200,
+        )
+
+    except Exception as e:
+        return JSONResponse({"error": str(e)}, status_code=500)
 
 
 @app.delete("/procurement-requests/{uuid}")
